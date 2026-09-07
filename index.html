@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="icon" type="image/png" href="May Gugma Nga Panghimanwa Logo Final.png">
     <title>Serbisyo sa Barangay Caravan - Asenso Bago</title>
@@ -849,26 +848,30 @@
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
 
-        // When video1 ends, autoplay video2
         if (video1 && video2) {
+            // When video1 ends, play video2
             video1.addEventListener('ended', () => {
-                video2.muted = false;
                 video2.play();
             });
 
-            // Unmute when user interacts with either video
-            video1.addEventListener('play', () => { video1.muted = false; });
-            video2.addEventListener('play', () => { video2.muted = false; });
-
-            // IntersectionObserver: autoplay video1 when scrolled into view
+            // IntersectionObserver: autoplay video1 when 50% visible
+            let isPlaying = false;
             const videoObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting && entry.target === video1) {
-                        video1.muted = true; // muted required for autoplay
-                        video1.play();
-                    } else if (!entry.isIntersecting && entry.target === video1) {
-                        video1.pause();
-                        video2.pause();
+                    if (entry.target === video1) {
+                        if (entry.isIntersecting && !isPlaying) {
+                            isPlaying = true;
+                            const playPromise = video1.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(() => {
+                                    // Autoplay blocked, user can still press play manually
+                                });
+                            }
+                        } else if (!entry.isIntersecting && isPlaying) {
+                            isPlaying = false;
+                            video1.pause();
+                            video2.pause();
+                        }
                     }
                 });
             }, { threshold: 0.5 });
