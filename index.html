@@ -649,7 +649,7 @@
                 <div class="flex flex-col gap-6">
                     <div>
                         <div class="bg-black rounded-2xl overflow-hidden shadow-2xl">
-                            <video controls class="w-full" preload="metadata">
+                            <video id="video1" controls muted class="w-full" preload="metadata">
                                 <source src="Bacong/bacong mayor caravan interview.mp4" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
@@ -657,7 +657,7 @@
                     </div>
                     <div>
                         <div class="bg-black rounded-2xl overflow-hidden shadow-2xl">
-                            <video controls class="w-full" preload="metadata">
+                            <video id="video2" controls muted class="w-full" preload="metadata">
                                 <source src="Bacong/bacong people interview.mp4" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
@@ -844,6 +844,37 @@
                 console.log('Observer attached');
             }
         }, 500);
+
+        // Video Autoplay on Scroll
+        const video1 = document.getElementById('video1');
+        const video2 = document.getElementById('video2');
+
+        // When video1 ends, autoplay video2
+        if (video1 && video2) {
+            video1.addEventListener('ended', () => {
+                video2.muted = false;
+                video2.play();
+            });
+
+            // Unmute when user interacts with either video
+            video1.addEventListener('play', () => { video1.muted = false; });
+            video2.addEventListener('play', () => { video2.muted = false; });
+
+            // IntersectionObserver: autoplay video1 when scrolled into view
+            const videoObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.target === video1) {
+                        video1.muted = true; // muted required for autoplay
+                        video1.play();
+                    } else if (!entry.isIntersecting && entry.target === video1) {
+                        video1.pause();
+                        video2.pause();
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            videoObserver.observe(video1);
+        }
 
         // Smooth Scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
